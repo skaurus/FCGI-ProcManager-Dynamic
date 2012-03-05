@@ -6,13 +6,13 @@ use base FCGI::ProcManager;
 # Public License, Version 3.  Please read the important licensing and
 # disclaimer information included below.
 
-# $Id: Dynamic.pm,v 0.1 2012/03/04 15:34:00 Andrey Velikoredchanin $
+# $Id: Dynamic.pm,v 0.1.1 2012/03/05 15:34:00 Andrey Velikoredchanin $
 
 use strict;
 
 use vars qw($VERSION);
 BEGIN {
-	$VERSION = '0.1';
+	$VERSION = '0.1.1';
 }
 
 use POSIX;
@@ -44,23 +44,23 @@ FCGI::ProcManager::Dynamic - extension of FCGI::ProcManager - functions for mana
 
 =head1 SYNOPSIS
 
-# In Object-oriented style.
-use CGI::Fast;
-use FCGI::ProcManager::Dynamic;
-my $proc_manager = FCGI::ProcManager->new({
-	n_processes => 8,
-	min_nproc => 8,
-	max_nproc => 32,
-	delta_nproc => 4,
-	delta_time => 60,
-	max_requests => 300
-});
-$proc_manager->pm_manage();
-while ($proc_manager->pm_loop() && (my $cgi = CGI::Fast->new())) {
-	$proc_manager->pm_pre_dispatch();
-	# ... handle the request here ...
-	$proc_manager->pm_post_dispatch();
-}
+ # In Object-oriented style.
+ use CGI::Fast;
+ use FCGI::ProcManager::Dynamic;
+ my $proc_manager = FCGI::ProcManager->new({
+ 	n_processes => 8,
+ 	min_nproc => 8,
+ 	max_nproc => 32,
+ 	delta_nproc => 4,
+ 	delta_time => 60,
+ 	max_requests => 300
+ });
+ $proc_manager->pm_manage();
+ while ($proc_manager->pm_loop() && (my $cgi = CGI::Fast->new())) {
+ 	$proc_manager->pm_pre_dispatch();
+ 	# ... handle the request here ...
+ 	$proc_manager->pm_post_dispatch();
+ }
 
 =head1 DESCRIPTION
 
@@ -70,29 +70,29 @@ FCGI::ProcManager::Dynamic doin some for FCGI::ProcManager, but including extent
 
 =head2 min_nproc
 
- Minimal count of work processes.
+Minimal count of work processes.
 
 =head2 max_nproc
 
- Maximal count of work processes.
+Maximal count of work processes.
 
 =head2 delta_nproc
 
- How match of work process need change for one time.
+How match of work process need change for one time.
 
 =head2 delta_time
 
- When after last nproc changes possible decrement for count work processes.
+When after last nproc changes possible decrement for count work processes.
 
 =head2 max_requests
 
- After work process processing this count of requests, work process finished and replacing for new work process.
+After work process processing this count of requests, work process finished and replacing for new work process.
 
 =head1 Addition functions
 
 =head2 pm_loop
 
- This function need for correct finalize work process in after working loop code. For example, if you need disconnection from database or other actions before destroy working process. It recomend for using if you use parameter "max_requests".
+This function need for correct finalize work process in after working loop code. For example, if you need disconnection from database or other actions before destroy working process. It recomend for using if you use parameter "max_requests".
 
 =head1 BUGS
 
