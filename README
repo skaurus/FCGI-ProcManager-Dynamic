@@ -1,8 +1,9 @@
 FCGI::ProcManager::Dynamic version 0.2
 ===============
 
-FCGI::ProcManager::Dynamic - subclass for FCGI::ProcManager with some 
-parameters and functions for dynamic managment of worker processes.
+FCGI::ProcManager::Dynamic - extension for FCGI::ProcManager, 
+it can dynamically control number of work processes depending 
+on the load.
 
 INSTALLATION
 
@@ -18,6 +19,8 @@ DEPENDENCIES
 This module requires these other modules and libraries:
 
   FCGI::ProcMananger
+  Time::HiRes
+  IPC::SysV
 
 COPYRIGHT AND LICENCE
 

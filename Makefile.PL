@@ -5,7 +5,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME              => 'FCGI::ProcManager::Dynamic',
     VERSION_FROM      => 'lib/FCGI/ProcManager/Dynamic.pm', # finds $VERSION
-    PREREQ_PM         => { FCGI::ProcManager => 0.18 }, # e.g., Module::Name => 1.1
+    PREREQ_PM         => { FCGI::ProcManager => 0.18, Time::HiRes => 0, IPC::SysV => 0 }, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM  => 'lib/FCGI/ProcManager/Dynamic.pm', # retrieve abstract from module
        AUTHOR         => 'Andrey Velikoredchanin <andy@andyhost.ru>') : ()),

@@ -6,48 +6,30 @@ use base FCGI::ProcManager;
 # Public License, Version 3.  Please read the important licensing and
 # disclaimer information included below.
 
-# $Id: Dynamic.pm,v 0.2 2012/03/05 15:34:00 Andrey Velikoredchanin $
+# $Id: Dynamic.pm,v 0.3 2012/03/06 14:51:37 Andrey Velikoredchanin $
 
 use strict;
 
 use vars qw($VERSION);
 BEGIN {
-	$VERSION = '0.2';
+	$VERSION = '0.3';
 }
 
 use POSIX;
 use Time::HiRes qw(usleep);
 use IPC::SysV qw(IPC_PRIVATE IPC_CREAT IPC_NOWAIT IPC_RMID);
-
-# Дополнительные параметры:
-# 1. min_nproc - минимальное количество процессов
-# 2. max_nproc - максимальное количество процессов
-# 3. delta_nproc - на какое количество менять количество процессов при изменении
-# 4. delta_time - минимальное количество секунд между последним увеличением или уменьшение к-ва процессов и последующим уменьшением
-# 5. max_requests - максимальное количество запросов на один рабочий процесс
-
-# Дополнительные функции:
-# pm_loop
-#	Параметры: нет
-#	Возвращает: true если необходимо продолжить работу цикла рабочего процесса
-# 	Пример использования (имеет смысл использовать только при установленном значении max_requests):
-# 	while ($pm->pm_loop() && (my $query = new CGI::Fast)) {
-#		$pm->pm_pre_dispatch();
-#		...
-#		$pm->pm_post_dispatch();
-# 	};
-# 	Это нужно что-бы можно было инициировать завершение рабочего процесса (при превышении количства обработанных запросов значения max_requests) дать процессу возможность сделать завершающие процедуры (отключение от БД и т.д.)
+use FCGI::ProcManager;
 
 =head1 NAME
 
-FCGI::ProcManager::Dynamic - extension of FCGI::ProcManager - functions for managing FastCGI applications. Here been add operations for dynamic managment of work processes.
+FCGI::ProcManager::Dynamic - extension for FCGI::ProcManager, it can dynamically control number of work processes depending on the load.
 
 =head1 SYNOPSIS
 
  # In Object-oriented style.
  use CGI::Fast;
  use FCGI::ProcManager::Dynamic;
- my $proc_manager = FCGI::ProcManager->new({
+ my $proc_manager = FCGI::ProcManager::Dynamic->new({
  	n_processes => 8,
  	min_nproc => 8,
  	max_nproc => 32,
@@ -64,35 +46,35 @@ FCGI::ProcManager::Dynamic - extension of FCGI::ProcManager - functions for mana
 
 =head1 DESCRIPTION
 
-FCGI::ProcManager::Dynamic doin some for FCGI::ProcManager, but including extent parameters and functions for operation with count of work processes.
+FCGI::ProcManager::Dynamic the same as FCGI::ProcManager, but it has additional settings and functions for dynamic control of work processes's number.
 
 =head1 Addition options
 
 =head2 min_nproc
 
-Minimal count of work processes.
+The minimum amount of worker processes.
 
 =head2 max_nproc
 
-Maximal count of work processes.
+The maximum amount of worker processes.
 
 =head2 delta_nproc
 
-How match of work process need change for one time.
+amount of worker processes which will be changed for once in case of their increase or decrease.
 
 =head2 delta_time
 
-When after last nproc changes possible decrement for count work processes.
+Delta of time from last change of processes's amount, when they will be reduced while lowering of loading.
 
 =head2 max_requests
 
-After work process processing this count of requests, work process finished and replacing for new work process.
+Amount of requests for one worker process. If it will be exceeded worker process will be recreated.
 
 =head1 Addition functions
 
 =head2 pm_loop
 
-This function need for correct finalize work process in after working loop code. For example, if you need disconnection from database or other actions before destroy working process. It recomend for using if you use parameter "max_requests".
+Function is needed for correct completion of worker process's cycle if max_requests will be exceeded.
 
 =head1 BUGS
 

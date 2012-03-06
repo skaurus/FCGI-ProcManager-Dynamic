@@ -1,5 +1,9 @@
 Revision history for Perl extension FCGI::ProcManager::Dynamic.
 
+0.3  Tue Mar  6 14:51:37 MSK 2012
+	- Fix: documentation
+	- Fix: depending
+
 0.2  Mon Mar  5 12:40:32 MSK 2012
 	- Fix: documentation
 
