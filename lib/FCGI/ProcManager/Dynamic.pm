@@ -6,13 +6,13 @@ use base FCGI::ProcManager;
 # Public License, Version 3.  Please read the important licensing and
 # disclaimer information included below.
 
-# $Id: Dynamic.pm,v 0.3 2012/03/06 14:51:37 Andrey Velikoredchanin $
+# $Id: Dynamic.pm,v 0.4 2012/03/11 13:53:46 Andrey Velikoredchanin $
 
 use strict;
 
 use vars qw($VERSION);
 BEGIN {
-	$VERSION = '0.3';
+	$VERSION = '0.4';
 }
 
 use POSIX;
@@ -133,7 +133,6 @@ sub pm_manage
 
 	# Создает очередь сообщений
 	$self->{ipcqueue} = msgget(IPC_PRIVATE, IPC_CREAT | 0666);
-	print STDERR "\nОЧЕРЕДЬ: ", $self->{ipcqueue}, "\n";
 
 	$self->{USEDPIDS} = {};
 
@@ -235,11 +234,25 @@ sub pm_wait
 				$self->{_last_delta_time} = time();
 			};
 		}
-		elsif (keys(%{$self->{PIDS}}) < $self->{n_processes}) {
+		elsif (keys(%{$self->{PIDS}}) < $self->{n_processes}) 
+		{
 			# Если количество процессов меньше текущего - добавляем
 			$self->pm_notify("incrise workers to ".$self->{n_processes});
 			$self->{_last_delta_time} = time();
 			$pid = -10;
+		}
+		elsif (keys(%{$self->{PIDS}}) < $self->{min_nproc}) 
+		{
+			# Если количество процессов меньше минимального - добавляем
+			$self->pm_notify("incrise workers to minimal ".$self->{min_nproc});
+			$self->SUPER::n_processes($self->{min_nproc});
+			$self->{_last_delta_time} = time();
+			$pid = -10;
+		}
+		elsif ($self->{USED_PROCS} >= ($self->{n_processes} - $self->{delta_nproc}))
+		{
+			# Если количество занятых рабочих процессов больше чем первое меньшее количество процессов относительно текущего, то отдаляем уменьшение процессов на delta_time
+			$self->{_last_delta_time} = time();
 		};
 
 		if ($pid == 0)
@@ -301,6 +314,13 @@ sub pm_loop
 	$self->{pm_loop_used} = 1;
 
 	return(!($self->{exit_flag}));
+};
+
+sub pm_notify {
+	my ($this,$msg) = @_;
+	$msg =~ s/\s*$/\n/;
+	my $time = POSIX::strftime('%Y-%m-%d %H:%M:%S', localtime(time()));
+	print STDERR $time, " - FastCGI: ".$this->role()." (pid $$): ".$msg;
 };
 
 1;

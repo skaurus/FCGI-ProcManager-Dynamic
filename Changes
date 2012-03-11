@@ -1,5 +1,10 @@
 Revision history for Perl extension FCGI::ProcManager::Dynamic.
 
+0.4
+	- Add: Time output for FastCGI notifications (usable for log analize)
+	- Fix: Addition check if workers count less than min_nproc
+	- Fix: Do not reduce the number of work processes when the number of processes employed during delta_time was great 
+
 0.3  Tue Mar  6 14:51:37 MSK 2012
 	- Fix: documentation
 	- Fix: depending
