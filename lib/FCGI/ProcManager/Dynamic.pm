@@ -6,13 +6,13 @@ use base FCGI::ProcManager;
 # Public License, Version 3.  Please read the important licensing and
 # disclaimer information included below.
 
-# $Id: Dynamic.pm,v 0.4 2012/03/11 13:53:46 Andrey Velikoredchanin $
+# $Id: Dynamic.pm,v 0.5 2012/03/05 15:34:00 Andrey Velikoredchanin $
 
 use strict;
 
 use vars qw($VERSION);
 BEGIN {
-	$VERSION = '0.4';
+	$VERSION = '0.5';
 }
 
 use POSIX;
@@ -22,7 +22,7 @@ use FCGI::ProcManager;
 
 =head1 NAME
 
-FCGI::ProcManager::Dynamic - extension for FCGI::ProcManager, it can dynamically control number of work processes depending on the load.
+FCGI::ProcManager::Dynamic -  extension for FCGI::ProcManager, it can dynamically control number of work processes depending on the load.
 
 =head1 SYNOPSIS
 
@@ -132,7 +132,9 @@ sub pm_manage
 	$self->{_last_delta_time} = time();
 
 	# Создает очередь сообщений
-	$self->{ipcqueue} = msgget(IPC_PRIVATE, IPC_CREAT | 0666);
+	if (!($self->{ipcqueue} = msgget(IPC_PRIVATE, IPC_CREAT | 0666))) {
+		die "Cannot create shared message pipe!";
+	};
 
 	$self->{USEDPIDS} = {};
 
@@ -152,8 +154,8 @@ sub pm_wait
 		if ($pid > 0)
 		{
 			# notify when one of our servers have died.
-			delete $self->{PIDS}->{$pid} and
-			$self->pm_notify("worker (pid $pid) exited with status ".(($? eq '25600')? '100 (expired max request count)':$?));
+			delete($self->{PIDS}->{$pid});
+			$self->pm_notify("worker (pid $pid) exited with status ".$?);
 		};
 
 		# Читаем сообщения
@@ -195,7 +197,7 @@ sub pm_wait
 
 			if ($newnp != $self->{n_processes})
 			{
-				$self->pm_notify("incrise workers count to $newnp");
+				$self->pm_notify("increase workers count to $newnp");
 				$self->SUPER::n_processes($newnp);
 				$pid = -10;
 				$self->{_last_delta_time} = time();
@@ -209,7 +211,7 @@ sub pm_wait
 
 			if ($newnp != $self->{n_processes})
 			{
-				$self->pm_notify("decrise workers count to $newnp");
+				$self->pm_notify("decrease workers count to $newnp");
 
 				# В цикле убиваем нужное количество незанятых процессов
 				my $i = 0;
@@ -237,14 +239,14 @@ sub pm_wait
 		elsif (keys(%{$self->{PIDS}}) < $self->{n_processes}) 
 		{
 			# Если количество процессов меньше текущего - добавляем
-			$self->pm_notify("incrise workers to ".$self->{n_processes});
+			$self->pm_notify("increase workers to ".$self->{n_processes});
 			$self->{_last_delta_time} = time();
 			$pid = -10;
 		}
 		elsif (keys(%{$self->{PIDS}}) < $self->{min_nproc}) 
 		{
 			# Если количество процессов меньше минимального - добавляем
-			$self->pm_notify("incrise workers to minimal ".$self->{min_nproc});
+			$self->pm_notify("increase workers to minimal ".$self->{min_nproc});
 			$self->SUPER::n_processes($self->{min_nproc});
 			$self->{_last_delta_time} = time();
 			$pid = -10;
@@ -269,7 +271,12 @@ sub pm_pre_dispatch
 	my $self = shift;
 	$self->SUPER::pm_pre_dispatch();
 
-	msgsnd($self->{ipcqueue}, pack("l! l!", 1, $$), 0);
+	if (!msgsnd($self->{ipcqueue}, pack("l! l!", 1, $$), IPC_NOWAIT)) {
+		print STDERR "Error when execute MSGSND in pm_pre_dispatch\n";
+		$self->{msgsenderr} = 1;
+	} else {
+		$self->{msgsenderr} = 0;
+	};
 
 	# Счетчик запросов
 	if (!defined($self->{requestcount})) {
@@ -283,7 +290,9 @@ sub pm_post_dispatch
 {
 	my $self = shift;
 
-	msgsnd($self->{ipcqueue}, pack("l! l!", 2, $$), 0);
+	if (!$self->{msgsenderr}) {
+		msgsnd($self->{ipcqueue}, pack("l! l!", 2, $$), 0);
+	};
 
 	$self->SUPER::pm_post_dispatch();
 
@@ -318,9 +327,11 @@ sub pm_loop
 
 sub pm_notify {
 	my ($this,$msg) = @_;
-	$msg =~ s/\s*$/\n/;
-	my $time = POSIX::strftime('%Y-%m-%d %H:%M:%S', localtime(time()));
-	print STDERR $time, " - FastCGI: ".$this->role()." (pid $$): ".$msg;
+	if defined($msg) {
+		$msg =~ s/\s*$/\n/;
+		my $time = POSIX::strftime('%Y-%m-%d %H:%M:%S', localtime(time()));
+		print STDERR $time, " - FastCGI: ".$this->role()." (pid $$): ".$msg;
+	};
 };
 
 1;
