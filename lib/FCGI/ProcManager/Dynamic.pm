@@ -6,13 +6,13 @@ use base FCGI::ProcManager;
 # Public License, Version 3.  Please read the important licensing and
 # disclaimer information included below.
 
-# $Id: Dynamic.pm,v 0.5 2012/03/05 15:34:00 Andrey Velikoredchanin $
+# $Id: Dynamic.pm,v 0.6 2012/06/29 11:00:00 Andrey Velikoredchanin $
 
 use strict;
 
 use vars qw($VERSION);
 BEGIN {
-	$VERSION = '0.5';
+	$VERSION = '0.6';
 }
 
 use POSIX;
@@ -327,7 +327,7 @@ sub pm_loop
 
 sub pm_notify {
 	my ($this,$msg) = @_;
-	if defined($msg) {
+	if (defined($msg)) {
 		$msg =~ s/\s*$/\n/;
 		my $time = POSIX::strftime('%Y-%m-%d %H:%M:%S', localtime(time()));
 		print STDERR $time, " - FastCGI: ".$this->role()." (pid $$): ".$msg;

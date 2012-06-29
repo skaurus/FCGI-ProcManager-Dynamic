@@ -1,5 +1,8 @@
 Revision history for Perl extension FCGI::ProcManager::Dynamic.
 
+0.6  Fri Jun 29 10:58:56 MSK 2012
+	- Fix: Stupid syntax error. Sorry.
+
 0.5  Thu Jun 28 18:32:25 MSK 2012
 	- Fix: A more correct work with shared memory queue
 	- Fix: small fix for english notifications
