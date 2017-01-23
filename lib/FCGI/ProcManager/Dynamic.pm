@@ -132,7 +132,7 @@ sub pm_manage
 	$self->{_last_delta_time} = time();
 
 	# Создает очередь сообщений
-	if (!($self->{ipcqueue} = msgget(IPC_PRIVATE, IPC_CREAT | 0666))) {
+	if (!defined($self->{ipcqueue} = msgget(IPC_PRIVATE, IPC_CREAT | 0666))) {
 		die "Cannot create shared message pipe!";
 	};
 
