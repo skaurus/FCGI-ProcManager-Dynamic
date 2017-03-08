@@ -203,6 +203,14 @@ sub pm_wait
 				$self->{_last_delta_time} = time();
 			};
 		}
+		elsif (keys(%{$self->{PIDS}}) < $self->{min_nproc}) 
+		{
+			# Если количество процессов меньше минимального - добавляем
+			$self->pm_notify("increase workers to minimal ".$self->{min_nproc});
+			$self->SUPER::n_processes($self->{min_nproc});
+			$self->{_last_delta_time} = time();
+			$pid = -10;
+		}
 		elsif (($self->{USED_PROCS} < $self->{min_nproc}) && ((time() - $self->{_last_delta_time}) >= $self->{delta_time}))
 		{
 			# Если загруженных процессов меньше минимального количества, уменьшаем на delta_nproc до минимального значения
@@ -240,14 +248,6 @@ sub pm_wait
 		{
 			# Если количество процессов меньше текущего - добавляем
 			$self->pm_notify("increase workers to ".$self->{n_processes});
-			$self->{_last_delta_time} = time();
-			$pid = -10;
-		}
-		elsif (keys(%{$self->{PIDS}}) < $self->{min_nproc}) 
-		{
-			# Если количество процессов меньше минимального - добавляем
-			$self->pm_notify("increase workers to minimal ".$self->{min_nproc});
-			$self->SUPER::n_processes($self->{min_nproc});
 			$self->{_last_delta_time} = time();
 			$pid = -10;
 		}
